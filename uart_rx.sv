@@ -30,7 +30,7 @@ clock_mul #(.SRC_FREQ(SRC_FREQ), .OUT_FREQ(BAUDRATE)) clk_mul (
 // CROSS CLOCK DOMAIN: The rx_ready flag should only be set 1 one for one source 
 // clock cycle. Use the cross clock domain technique discussed in class to handle this.
 reg rx_ready_reg = 1'b0;
-always @(posedge rx_clk) begin
+always @(posedge clk) begin
     rx_ready <= rx_ready_reg;
     rx_ready_reg <= 1'b0;
 end
@@ -39,10 +39,12 @@ end
 integer state = INIT;
 reg [7:0] rx_data_reg;
 integer bit_count;
+// Need to posedge and negedge rx_clk
 always @(posedge rx_clk) begin
     case (state)
         INIT: begin
             rx_ready_reg <= 1'b0;
+            rx_data_reg <= 8'b0; // Clear data register
             if (rx == 1'b0) begin // Start bit detected
                 state <= RX_DATA;
                 bit_count <= 0;
@@ -60,8 +62,9 @@ always @(posedge rx_clk) begin
             end
         end
         RX_DATA: begin
-            // rx_data_reg <= {rx, rx_data_reg[7:1]}; // Shift new bit MSB
-            rx_data_reg[bit_count] <= rx; // Taking new bit, but using bit_count index
+            //rx_data_reg <= {rx, rx_data_reg[7:1]}; // Shift new bit MSB
+            rx_data_reg[DATA_BITS - bit_count] <= rx; // Taking new bit, using index instead of shifting
+            rx_data <= rx_data_reg; // Update output data
             bit_count <= bit_count + 1;
             if (bit_count == DATA_BITS - 1) begin // Transmission complete after 8 bits
                 state <= STOP;
