@@ -62,8 +62,8 @@ always @(posedge rx_clk) begin
             end
         end
         RX_DATA: begin
-            //rx_data_reg <= {rx, rx_data_reg[7:1]}; // Shift new bit MSB
-            rx_data_reg[DATA_BITS - bit_count] <= rx; // Taking new bit, using index instead of shifting
+            rx_data_reg <= {rx, rx_data_reg[7:1]}; // Shift new bit MSB
+            //rx_data_reg[DATA_BITS - bit_count - 1] <= rx; // Taking new bit, using index instead of shifting
             rx_data <= rx_data_reg; // Update output data
             bit_count <= bit_count + 1;
             if (bit_count == DATA_BITS - 1) begin // Transmission complete after 8 bits
